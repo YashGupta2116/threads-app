@@ -18,3 +18,10 @@ app.listen(PORT, () => {
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
+
+
+// routes
+
+import authRoutes from './routes/auth.route.js';
+
+app.use("/api/auth", authRoutes);
