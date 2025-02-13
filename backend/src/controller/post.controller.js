@@ -3,6 +3,12 @@ import Post from "../models/posts.model.js";
 export const addPost = async (req, res) => {
   const userId = req.user._id;
 
+  if (!userId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User not authorized" });
+  }
+
   const {
     content,
     image = "",
@@ -25,7 +31,7 @@ export const addPost = async (req, res) => {
   }
 
   try {
-    const newPost = await new Post({
+    const newPost = new Post({
       userId,
       content,
       image,
@@ -75,5 +81,80 @@ export const updatePost = async (req, res) => {
   } catch (error) {
     console.error("Error updating post:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  const postId = req.params.postId;
+
+  try {
+    const post = await Post.findByIdAndDelete(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json({ message: "Post deleted successfully", post });
+  } catch (error) {
+    console.error("Error in deletePost controller ::", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getUserPosts = async (req, res) => {
+  const userId = req.user._id;
+
+  if (!userId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User not authorized" });
+  }
+
+  try {
+    const allUserPosts = await Post.findOne({ userId });
+
+    if (!allUserPosts) {
+      return res.status(200).json({ success: true, message: "No user posts" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "User posts fetcehd", allUserPosts });
+  } catch (error) {
+    console.log("Internal Server error");
+    return res
+      .status(500)
+      .json({ success: false, message: "error in getUserPosts" });
+  }
+};
+
+export const getPost = async (req, res) => {
+  const postId = req.params.postId;
+
+  if (!postId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No postId was provided" });
+  }
+
+  try {
+    const userPost = await Post.findById(postId);
+
+    if (!userPost) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Post not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User Post fetched successfully",
+      userPost,
+    });
+  } catch (error) {
+    console.log("Internal Server error");
+    return res
+      .status(500)
+      .json({ success: false, message: "error in getPost" });
   }
 };
