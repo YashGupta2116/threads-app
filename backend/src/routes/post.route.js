@@ -7,6 +7,7 @@ import {
   getPost,
   getFeed,
   likeUnlikePost,
+  postComment,
 } from "../controller/post.controller.js";
 import verifyJWT from "../middlewares/jwt.middleware.js";
 const router = Router();
@@ -19,5 +20,6 @@ router
   .delete(verifyJWT, deletePost); // Single post operations
 router.route("/feed").get(verifyJWT, getFeed);
 router.route("/:postId/like").patch(verifyJWT, likeUnlikePost);
+router.route("/:postId/comment").patch(verifyJWT, postComment);
 
 export default router;

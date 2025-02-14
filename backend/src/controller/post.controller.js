@@ -194,32 +194,73 @@ export const getFeed = async (req, res) => {
 
 export const likeUnlikePost = async (req, res) => {
   const userId = req.user._id;
-
   const postId = req.params.postId;
+
   try {
     const updatedPost = await Post.findByIdAndUpdate(
       postId,
       {
-        $cond: {
-          if: { $in: [userId, "$likeCount"] },
-          then: { $pull: { likeCount: userId } }, // Unlike
-          else: { $addToSet: { likeCount: userId } }, // Like
-        },
+        $addToSet: { likeCount: userId }, // Adds only if not present
+        $pull: { likeCount: userId }, // Removes if present
       },
       { new: true }
     );
 
     if (!updatedPost) {
       return res
-        .status(400)
-        .json({ success: false, message: "Internal server error" });
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Operation successfull", updatePost });
+    res.status(200).json({
+      success: true,
+      message: "Operation successful",
+      updatedPost,
+    });
   } catch (error) {
-    console.log("error in likeUnlikePost :: post controller ::", error);
+    console.error("Error in likeUnlikePost:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const postComment = async (req, res) => {
+  const { text } = req.body;
+  const postId = req.params.id;
+  const { userId, username, userProfilePic } = req.user;
+
+  try {
+    if (!(postId && userId)) {
+      return res
+        .status(400)
+        .json({ success: false, nmessage: "User id or post id missing " });
+    }
+
+    if (!text) {
+      return res
+        .status(400)
+        .json({ success: false, message: "not text provided" });
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(400).json({ success: false, message: "No post found" });
+    }
+
+    const fullComment = {
+      userId,
+      text,
+      userProfilePic,
+      username,
+    };
+
+    post.comments.push(fullComment);
+
+    await post.save();
+
+    res.status(200).json({ success: true, message: "Comment published" });
+  } catch (error) {
+    console.log("Error in postComment :: post controller :: ", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

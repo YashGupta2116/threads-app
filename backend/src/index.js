@@ -23,6 +23,8 @@ app.use(cookieParser());
 
 import authRoutes from "./routes/auth.route.js";
 import postRoutes from "./routes/post.route.js";
+import messageRoutes from "./routes/message.route.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/messages", messageRoutes);
