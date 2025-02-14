@@ -1,6 +1,7 @@
 import Post from "../models/posts.model.js";
+import User from "../models/user.model.js";
 
-export const addPost = async (req, res) => {
+export const createPost = async (req, res) => {
   const userId = req.user._id;
 
   if (!userId) {
@@ -111,7 +112,7 @@ export const getUserPosts = async (req, res) => {
   }
 
   try {
-    const allUserPosts = await Post.findOne({ userId });
+    const allUserPosts = await Post.find({ userId }).sort({ createdAt: -1 });
 
     if (!allUserPosts) {
       return res.status(200).json({ success: true, message: "No user posts" });
@@ -156,5 +157,69 @@ export const getPost = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "error in getPost" });
+  }
+};
+
+export const getFeed = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "No user found" });
+    }
+
+    const followings = user.followings;
+
+    const feedPosts = await Post.find({ userId: { $in: followings } }).sort({
+      createdAt: -1,
+    });
+
+    if (!followings) {
+      return res
+        .status(400)
+        .json({ success: true, message: "Follow people to get feed" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Feed is fetched", feedPosts });
+  } catch (error) {
+    console.log("Error in getFeed :: post controller ::", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server error" });
+  }
+};
+
+export const likeUnlikePost = async (req, res) => {
+  const userId = req.user._id;
+
+  const postId = req.params.postId;
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $cond: {
+          if: { $in: [userId, "$likeCount"] },
+          then: { $pull: { likeCount: userId } }, // Unlike
+          else: { $addToSet: { likeCount: userId } }, // Like
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Internal server error" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Operation successfull", updatePost });
+  } catch (error) {
+    console.log("error in likeUnlikePost :: post controller ::", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

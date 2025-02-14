@@ -5,6 +5,7 @@ const postSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     image: {
       type: String,
@@ -13,11 +14,13 @@ const postSchema = new mongoose.Schema(
     content: {
       type: String,
       required: true,
+      maxLength: 500,
     },
     likeCount: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: [mongoose.Schema.Types.ObjectId],
         ref: "User",
+        default: [],
       },
     ],
     shared: {
@@ -26,9 +29,22 @@ const postSchema = new mongoose.Schema(
     },
     comments: [
       {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        text: String,
-        createdAt: { type: Date, default: Date.now },
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        text: {
+          type: String,
+          required: true,
+        },
+        userProfilePic: {
+          type: String,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },
