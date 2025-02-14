@@ -171,24 +171,21 @@ export const getFeed = async (req, res) => {
 
     const followings = user.followings;
 
+    if (followings.length === 0) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Follow people to get feed" });
+    }
+
     const feedPosts = await Post.find({ userId: { $in: followings } }).sort({
       createdAt: -1,
     });
-
-    if (!followings) {
-      return res
-        .status(400)
-        .json({ success: true, message: "Follow people to get feed" });
-    }
 
     res
       .status(200)
       .json({ success: true, message: "Feed is fetched", feedPosts });
   } catch (error) {
     console.log("Error in getFeed :: post controller ::", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server error" });
   }
 };
 
@@ -197,24 +194,27 @@ export const likeUnlikePost = async (req, res) => {
   const postId = req.params.postId;
 
   try {
-    const updatedPost = await Post.findByIdAndUpdate(
-      postId,
-      {
-        $addToSet: { likeCount: userId }, // Adds only if not present
-        $pull: { likeCount: userId }, // Removes if present
-      },
-      { new: true }
-    );
-
-    if (!updatedPost) {
+    const post = await Post.findById(postId);
+    if (!post) {
       return res
         .status(404)
         .json({ success: false, message: "Post not found" });
     }
 
+    const isLiked = post.likeCount.includes(userId);
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      isLiked
+        ? { $pull: { likeCount: userId } }
+        : { $addToSet: { likeCount: userId } },
+      { new: true }
+    );
+
     res.status(200).json({
       success: true,
-      message: "Operation successful",
+      message: isLiked ? "Post unliked" : "Post liked",
+      likes: updatedPost.likeCount.length, // Return total likes count
       updatedPost,
     });
   } catch (error) {
@@ -225,14 +225,20 @@ export const likeUnlikePost = async (req, res) => {
 
 export const postComment = async (req, res) => {
   const { text } = req.body;
-  const postId = req.params.id;
-  const { userId, username, userProfilePic } = req.user;
+  const postId = req.params.postId;
+  const userId = req.user._id;
+  const { username, userProfilePic } = req.user;
 
   try {
-    if (!(postId && userId)) {
+    if (!postId) {
       return res
         .status(400)
-        .json({ success: false, nmessage: "User id or post id missing " });
+        .json({ success: false, message: "post id missing " });
+    }
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User id missing " });
     }
 
     if (!text) {
@@ -260,7 +266,7 @@ export const postComment = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Comment published" });
   } catch (error) {
-    console.log("Error in postComment :: post controller :: ", error);
+    console.log("Error in postComment :: post controller :: ", error.message);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

@@ -20,8 +20,13 @@ const generateTokens = async (userId, res) => {
 };
 
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { username, fullName, email, password } = req.body;
 
+  if (!username) {
+    return res
+      .status(400)
+      .json({ success: false, message: "username mandatory" });
+  }
   if (!fullName) {
     return res
       .status(400)
@@ -56,6 +61,7 @@ export const signup = async (req, res) => {
     }
 
     const newUser = new User({
+      username,
       fullName,
       email,
       password: hashedPass,
@@ -77,12 +83,6 @@ export const signup = async (req, res) => {
         .json({ success: false, message: "userid was not found" });
 
     await generateTokens(userId, res);
-
-    if (!token) {
-      return res
-        .status(400)
-        .json({ success: false, message: "no tokens were created" });
-    }
 
     const userResponse = newUser.toObject();
 
@@ -147,27 +147,64 @@ export const login = async (req, res) => {
 };
 
 export const getUser = async (req, res) => {
-  const user = req.user;
+  const userId = req.user._id;
+
+  try {
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(400).json({ succes: false, message: "user not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "User fetched", user });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 };
 
 export const updateProfile = async (req, res) => {
   const userId = req.user._id;
 
-  const { email, password, fullName } = req.body;
+  try {
+    const { email, password, fullName, username } = req.body;
 
-  if (!userId) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User not verified" });
-  }
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "UserId not found" });
+    }
+    const updates = {};
 
-  const updatedUser = await User.findByIdAndUpdate(userId, {
-    email,
-    password,
-    fullName,
-  });
+    if (password && password !== "") {
+      const salt = await bcrypt.genSalt(10);
+      updates.password = await bcrypt.hash(password, salt);
+    }
 
-  if (!updatedUser) {
+    if (email && email !== "") updates.email = email;
+    if (username && username !== "") updates.username = username;
+    if (fullName && fullName !== "") updates.fullName = fullName;
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+    }).select("-password");
+
+    if (!updatedUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Updated user null" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User updated Scucessfully",
+      updatedUser,
+    });
+  } catch (error) {
+    console.log("Internal server error");
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -183,5 +220,53 @@ export const logout = (req, res) => {
   } catch (error) {
     console.error("Error in authController :: logout ::", error);
     return res.status(500).json({ success: false, message: "Couldn't logout" });
+  }
+};
+
+export const followUnfollowUser = async (req, res) => {
+  const userId = req.user._id;
+  const followId = req.params.followId;
+
+  if (userId.toString() === followId.toString()) {
+    return res
+      .status(400)
+      .json({ success: false, message: "You cannot follow yourself." });
+  }
+
+  try {
+    const toFollowUser = await User.findById(followId).select("-password");
+
+    if (!toFollowUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found." });
+    }
+
+    const isFollowed = toFollowUser.followers.includes(userId);
+
+    await User.findByIdAndUpdate(
+      followId,
+      isFollowed
+        ? { $pull: { followers: userId } }
+        : { $addToSet: { followers: userId } },
+      { new: true }
+    );
+    await User.findByIdAndUpdate(
+      userId,
+      isFollowed
+        ? { $pull: { followings: followId } }
+        : { $addToSet: { followings: followId } },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: isFollowed
+        ? "User unfollowed successfully."
+        : "User followed successfully.",
+    });
+  } catch (error) {
+    console.error("Error in followUnfollowUser:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

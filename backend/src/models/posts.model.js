@@ -29,7 +29,7 @@ const postSchema = new mongoose.Schema(
     },
     comments: [
       {
-        user: {
+        userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           required: true,
