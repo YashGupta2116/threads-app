@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  followUnfollowUser,
   getUser,
   login,
   logout,
@@ -11,8 +12,9 @@ const router = Router();
 
 router.route("/signup").post(signup);
 router.route("/login").post(login);
-router.route("/update-profile").patch(verifyJWT, updateProfile);
-router.route("/get-user").get(verifyJWT, getUser);
 router.route("/logout").post(logout);
+router.route("/get-user").get(verifyJWT, getUser);
+router.route("/update-profile").patch(verifyJWT, updateProfile);
+router.route("/follow/:followId").patch(verifyJWT, followUnfollowUser);
 
 export default router;
