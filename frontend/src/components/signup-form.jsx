@@ -10,8 +10,52 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { authStore } from "@/store/authStore";
+import { Loader2 } from "lucide-react";
 
 export function SignUpForm({ className, ...props }) {
+  const [formData, setFormData] = useState({
+    username: "",
+    fullName: "",
+    email: "",
+    password: "",
+  });
+
+  const { signup, isSigningUp } = authStore();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const success = validateForm();
+
+    if (success === true) {
+      signup(formData);
+    }
+
+    setFormData({ username: "", fullName: "", email: "", password: "" });
+  };
+
+  const validateForm = () => {
+    if (formData.fullName === "") {
+      console.log("Fullname is required");
+      return false;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      console.log("email is not valid");
+      return false;
+    }
+    if (formData.password.length < 6) {
+      console.log("password must be more than 6 charachter");
+      return false;
+    }
+    if (formData.username === "" || formData.username === null) {
+      console.log("Username is required");
+      return false;
+    }
+
+    return true;
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -22,7 +66,7 @@ export function SignUpForm({ className, ...props }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="grid gap-6">
                 <div className="grid gap-2">
@@ -31,15 +75,40 @@ export function SignUpForm({ className, ...props }) {
                     id="fullname"
                     type="text"
                     placeholder="Your Name"
+                    value={formData.fullName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
                     required
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <div className="flex items-center">
+                    <Label htmlFor="username">username</Label>
+                  </div>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="enter your username"
+                    value={formData.username}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="email">Email</Label>
+                  </div>
                   <Input
                     id="email"
                     type="email"
                     placeholder="m@example.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -51,11 +120,21 @@ export function SignUpForm({ className, ...props }) {
                     id="password"
                     type="password"
                     placeholder="enter password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
                     required
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  Sign up
+                  {isSigningUp ? (
+                    <>
+                      <Loader2 /> Loading....
+                    </>
+                  ) : (
+                    "Sign up"
+                  )}
                 </Button>
                 <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                   <span className="relative z-10 bg-background px-2 text-muted-foreground">
