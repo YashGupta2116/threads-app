@@ -2,7 +2,7 @@ import { axiosInstance } from "@/lib/axios";
 import { create } from "zustand";
 
 export const authStore = create((set) => ({
-  authUser: null,
+  authUser: JSON.parse(localStorage.getItem("authUser")) || null,
   isSigningUp: false,
   isLoggingIn: false,
 
@@ -13,6 +13,9 @@ export const authStore = create((set) => ({
       const res = await axiosInstance.post("/auth/signup", data);
 
       set({ authUser: res.data });
+
+      localStorage.setItem("authUser", JSON.stringify(res.data));
+
       console.log("Account Created successfully");
     } catch (error) {
       console.log("errrrrror: ", error);
@@ -27,6 +30,8 @@ export const authStore = create((set) => ({
       const res = await axiosInstance.post("/auth/login", data);
 
       set({ authUser: res.data });
+
+      localStorage.setItem("authUser", JSON.stringify(res.data));
 
       console.log("Logged in successfully");
     } catch (error) {
