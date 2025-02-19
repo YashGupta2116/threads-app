@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 
 const authMiddleware = (req, res, next) => {
-  const token = req.cookies.accessToken; 
+  const token =
+    req.cookies?.accessToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
+
   if (!token) {
     return res.status(401).json({ message: "Unauthorized, no token" });
   }
@@ -9,9 +12,9 @@ const authMiddleware = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded; 
+    req.user = decoded;
 
-    next(); 
+    next();
   } catch (error) {
     return res.status(403).json({ message: "Invalid or expired token" });
   }

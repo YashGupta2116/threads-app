@@ -24,12 +24,12 @@ export function SignUpForm({ className, ...props }) {
 
   const { signup, isSigningUp } = authStore();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const success = validateForm();
 
     if (success === true) {
-      signup(formData);
+      await signup(formData);
     }
 
     setFormData({ username: "", fullName: "", email: "", password: "" });

@@ -270,3 +270,14 @@ export const followUnfollowUser = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const checkAuth = async (req, res) => {
+  try {
+    res
+      .status(200)
+      .json({ success: true, message: "User authenticated", user: req.user });
+  } catch (error) {
+    console.log("Error in checkAuth controller ::  error :: ", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
