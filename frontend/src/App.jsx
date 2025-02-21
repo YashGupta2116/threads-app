@@ -8,7 +8,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import SignUpPage from "./pages/SignUpPage";
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/Home/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import { authStore } from "./store/authStore";
 import { Home, Loader2 } from "lucide-react";

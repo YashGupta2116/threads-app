@@ -28,6 +28,8 @@ import { authStore } from "@/store/authStore";
 const Navbar = () => {
   const { logout } = authStore();
 
+  const { authUser } = authStore();
+
   const handleLogout = async () => {
     await logout();
 
