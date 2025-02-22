@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,11 +24,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authStore } from "@/store/authStore";
+import {useHomeStore} from '@/store/useHomeStore'
 
 const Navbar = () => {
-  const { logout } = authStore();
+  const { authUser , logout } = authStore();
 
-  const { authUser } = authStore();
+  const { userProfile , isGettingUserProfile , getUserProfile } = useHomeStore();
+
+  useEffect(() => {
+    console.log("authUser:" , authUser);
+    if(authUser) {
+      getUserProfile();
+    }
+    
+  } , [])
+
+  const user = userProfile.user;
+
 
   const handleLogout = async () => {
     await logout();
@@ -104,8 +116,8 @@ const Navbar = () => {
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div className="hidden lg:block text-left">
-                <p className="text-sm font-medium">Username</p>
-                <p className="text-xs text-muted-foreground">@username</p>
+                <p className="text-sm font-medium">{user.username}</p>
+                <p className="text-xs text-muted-foreground">{user.username}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>

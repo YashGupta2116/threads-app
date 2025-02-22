@@ -1,7 +1,8 @@
 import { axiosInstance } from "@/lib/axios";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export const authStore = create((set) => ({
+export const authStore = create(persist((set) => ({
   authUser: null,
   isSigningUp: false,
   isLoggingIn: false,
@@ -61,4 +62,7 @@ export const authStore = create((set) => ({
       console.log("Error in logout: ", error);
     }
   },
+}) , {
+  name: "auth-user", // Key for localStorage
+  getStorage: () => localStorage, // Use localStorage to persist data
 }));

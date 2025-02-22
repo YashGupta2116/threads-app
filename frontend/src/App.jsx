@@ -13,10 +13,11 @@ import ProfilePage from "./pages/ProfilePage";
 import { authStore } from "./store/authStore";
 import { Home, Loader2 } from "lucide-react";
 import MainLayout from "./components/layout/MainLayout";
+import { useHomeStore } from "./store/useHomeStore";
 
 const App = () => {
   const { isCheckingAuth, authUser, checkAuth } = authStore();
-
+  
   useEffect(() => {
     checkAuth();
   }, []);
