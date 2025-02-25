@@ -22,13 +22,17 @@ const ProfilePage = () => {
     getUserPosts();
   }, []);
 
+  console.log(userPosts);
+
   return (
     <div className='max-w-4xl mx-auto p-6 space-y-6'>
       <Card>
         <CardContent className='flex items-center space-x-4 p-6'>
           <Avatar className='w-20 h-20'>
             <AvatarImage src='/placeholder-avatar.png' alt='Profile Picture' />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarFallback>
+              {userProfile?.fullName ? userProfile.fullName[0] : 'U'}
+            </AvatarFallback>
           </Avatar>
           <div className='flex-1'>
             <h2 className='text-xl font-semibold'>{userProfile?.fullName}</h2>
@@ -42,7 +46,9 @@ const ProfilePage = () => {
       </Card>
 
       {gettingUserPosts ? (
-        <Loader2 />
+        <div className='flex justify-center py-8'>
+          <Loader2 className='h-8 w-8 animate-spin text-primary' />
+        </div>
       ) : (
         <Tabs defaultValue='posts'>
           <TabsList className='w-full flex justify-around border-b'>
@@ -53,23 +59,29 @@ const ProfilePage = () => {
 
           <TabsContent value='posts'>
             <div className='space-y-4'>
-              {Array.isArray(userPosts.allUserPosts) &&
-                userPosts.allUserPosts.map((post) => (
-                  <PostCard key={post._id} post={post} />
-                ))}
+              {Array.isArray(userPosts) && userPosts.length > 0 ? (
+                userPosts.map((post) => <PostCard key={post._id} post={post} />)
+              ) : (
+                <div className='text-center py-8 text-gray-500'>
+                  No posts to display
+                </div>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value='replies'>
             <div className='space-y-4'>
-              <PostCard />
-              <PostCard />
+              <div className='text-center py-8 text-gray-500'>
+                No replies to display
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value='likes'>
             <div className='space-y-4'>
-              <PostCard />
+              <div className='text-center py-8 text-gray-500'>
+                No likes to display
+              </div>
             </div>
           </TabsContent>
         </Tabs>

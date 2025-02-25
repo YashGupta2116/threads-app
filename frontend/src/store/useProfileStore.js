@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { axiosInstance } from "@/lib/axios";
+import {create} from 'zustand';
+import {persist, createJSONStorage} from 'zustand/middleware';
+import {axiosInstance} from '@/lib/axios';
 
 export const useProfileStore = create(
   persist(
@@ -9,35 +9,37 @@ export const useProfileStore = create(
       isGettingUserProfile: false,
 
       getUserProfile: async () => {
-        set({ isGettingUserProfile: true });
+        set({isGettingUserProfile: true});
         try {
-          const response = await axiosInstance.get("/auth/get-user");
-          set({ userProfile: response.data.user });
+          const response = await axiosInstance.get('/auth/get-user');
+          set({userProfile: response.data.user});
         } catch (error) {
-          console.log("Error while getting user profile");
+          console.log('Error while getting user profile');
         } finally {
-          set({ isGettingUserProfile: false });
+          set({isGettingUserProfile: false});
         }
       },
 
       isEditingProfile: false,
 
-      editProfile: async(data) => {
-        set({ isGettingUserProfile: true });
+      editProfile: async (data) => {
+        set({isEditingUserProfile: true}); // Fixed variable name
         try {
-          const response = await axiosInstance.patch("/auth/update-profile" , data);
-          set({ userProfile: response.data.updatedUser });
+          const response = await axiosInstance.patch(
+            '/auth/update-profile',
+            data
+          );
+          set({userProfile: response.data.updatedUser});
         } catch (error) {
-          console.log("Error while getting user profile");
+          console.log('Error while updating user profile'); // Fixed error message
         } finally {
-          set({ isGettingUserProfile: false });
+          set({isEditingUserProfile: false}); // Fixed variable name
         }
-      }
-
+      },
     }),
     {
-      name: "user-profile", // Key for localStorage
-      getStorage: () => localStorage, // Use localStorage to persist data
+      name: 'user-profile',
+      storage: createJSONStorage(() => sessionStorage), // Use createJSONStorage explicitly
     }
   )
 );
