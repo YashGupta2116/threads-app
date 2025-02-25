@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Home,
@@ -9,12 +9,10 @@ import {
   User,
   PenSquare,
   LogOut,
-  Menu,
   X,
   Bookmark,
   Settings,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -24,12 +22,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authStore } from "@/store/authStore";
-import {useHomeStore} from '@/store/useHomeStore'
+import {useProfileStore} from '@/store/useProfileStore'
 
 const Navbar = () => {
   const { authUser , logout } = authStore();
 
-  const { userProfile , isGettingUserProfile , getUserProfile } = useHomeStore();
+  const { userProfile , getUserProfile } = useProfileStore();
 
   useEffect(() => {
     console.log("authUser:" , authUser);
@@ -37,9 +35,7 @@ const Navbar = () => {
       getUserProfile();
     }
     
-  } , [])
-
-  const user = userProfile.user;
+  } , [authUser])
 
 
   const handleLogout = async () => {
@@ -116,8 +112,8 @@ const Navbar = () => {
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div className="hidden lg:block text-left">
-                <p className="text-sm font-medium">{user.username}</p>
-                <p className="text-xs text-muted-foreground">{user.username}</p>
+                <p className="text-sm font-medium">{userProfile.username}</p>
+                <p className="text-xs text-muted-foreground">{userProfile.username}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
