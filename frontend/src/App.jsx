@@ -42,7 +42,6 @@ const App = () => {
         />
 
         {/* Protected Routes */}
-        {/* Protected Routes */}
 
         <Route element={authUser ? <MainLayout /> : <SignUpPage />}>
           <Route path='/' element={authUser ? <HomePage /> : <SignUpPage />} />

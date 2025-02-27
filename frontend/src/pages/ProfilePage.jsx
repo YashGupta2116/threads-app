@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
 import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
@@ -8,47 +9,62 @@ import {useProfileStore} from '@/store/useProfileStore';
 import {Loader2} from 'lucide-react';
 import EditProfileModal from '@/components/EditProfileModal';
 import {usePostsStore} from '@/store/usePostsStore';
-import {useParams} from 'react-router-dom';
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+  const {username} = useParams(); // Get username from URL
   const {
     authUserProfile,
     getAuthUserProfile,
     userProfile,
     getUserProfile,
     isGettingUserProfile,
+    isFollowed,
+    checkFollowStatus,
+    followUser,
   } = useProfileStore();
   const {userPosts, gettingUserPosts, getUserPosts} = usePostsStore();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const {username} = useParams(); // Get username from URL
-
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true);
       if (username) {
+        if (username === authUserProfile?.username) {
+          navigate('/profile'); // Redirect to "/profile" if it's the auth user
+          return;
+        }
         await getUserProfile(username);
       } else {
         await getAuthUserProfile();
       }
       setLoading(false);
     };
-
     loadProfile();
-  }, [username, getUserProfile, getAuthUserProfile]);
+  }, [username, getUserProfile, getAuthUserProfile, isEditModalOpen]);
 
-  // Load posts after profile is loaded
+  useEffect(() => {
+    if (username && userProfile?._id) {
+      checkFollowStatus(userProfile._id);
+    }
+  }, [username, userProfile, checkFollowStatus]);
+
   useEffect(() => {
     const currentProfile = username ? userProfile : authUserProfile;
     if (currentProfile?.username) {
-      console.log('Loading posts for:', currentProfile.username);
       getUserPosts(currentProfile.username);
     }
-  }, [username, authUserProfile, userProfile, getUserPosts]);
+  }, [username, authUserProfile, userProfile, getUserPosts, isEditModalOpen]);
 
-  // Determine which profile to display
   const profile = username ? userProfile : authUserProfile;
+
+  const handleFollow = async () => {
+    if (!userProfile?._id) return;
+    await followUser(userProfile._id);
+    await checkFollowStatus(userProfile._id); // Refresh follow status
+    await getUserProfile(username); // Refresh profile to reflect changes
+  };
 
   if (loading || isGettingUserProfile) {
     return (
@@ -58,7 +74,6 @@ const ProfilePage = () => {
     );
   }
 
-  // User profile not found
   if (username && !userProfile) {
     return (
       <div className='max-w-4xl mx-auto p-6 text-center'>
@@ -84,10 +99,28 @@ const ProfilePage = () => {
             <h2 className='text-xl font-semibold'>{profile?.fullName}</h2>
             <p className='text-gray-500'>@{profile?.username}</p>
             <p className='text-gray-600 mt-2'>{profile?.bio}</p>
+            <div className='flex space-x-4 mt-2 text-gray-700'>
+              <p>
+                <span className='font-semibold'>
+                  {profile?.followers?.length || 0}
+                </span>{' '}
+                Followers
+              </p>
+              <p>
+                <span className='font-semibold'>
+                  {profile?.followings?.length || 0}
+                </span>{' '}
+                Following
+              </p>
+            </div>
           </div>
-          {!username && ( // Show "Edit Profile" button only for logged-in user
+          {!username ? (
             <Button variant='outline' onClick={() => setIsEditModalOpen(true)}>
               Edit Profile
+            </Button>
+          ) : (
+            <Button variant='outline' onClick={handleFollow}>
+              {isFollowed ? 'Unfollow' : 'Follow'}
             </Button>
           )}
         </CardContent>

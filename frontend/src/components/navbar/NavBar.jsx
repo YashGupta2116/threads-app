@@ -95,7 +95,7 @@ const Navbar = () => {
               <Avatar className='h-8 w-8'>
                 <AvatarImage src='' alt='User' />
                 <AvatarFallback>
-                  {authUserProfile?.profilePic || authUserProfile.fullName[0]}
+                  {authUserProfile?.profilePic || authUserProfile?.fullName[0]}
                 </AvatarFallback>
               </Avatar>
               <div className='hidden lg:block text-left'>

@@ -12,7 +12,6 @@ export const usePostsStore = create((set) => ({
         ? `/posts/get-posts/${username}`
         : '/posts/get-posts';
       const response = await axiosInstance.get(endpoint);
-      console.log('posts : ', response);
       set({userPosts: response.data.posts}); // Use `posts` instead of `allUserPosts`
     } catch (error) {
       console.error('Error while getting user posts:', error.message);

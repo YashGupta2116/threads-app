@@ -42,12 +42,13 @@ export const signup = async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({email});
+    const existingUser = await User.findOne({email, username});
 
     if (existingUser) {
-      return res
-        .status(400)
-        .json({success: false, message: 'User with email already exist'});
+      return res.status(400).json({
+        success: false,
+        message: 'User with email or username already exist',
+      });
     }
 
     const salt = bcrypt.genSaltSync(10);
@@ -222,7 +223,7 @@ export const logout = (req, res) => {
 
 export const followUnfollowUser = async (req, res) => {
   const userId = req.user._id;
-  const followId = req.params.followId;
+  const {followId} = req.params;
 
   if (userId.toString() === followId.toString()) {
     return res
@@ -259,6 +260,7 @@ export const followUnfollowUser = async (req, res) => {
       message: isFollowed
         ? 'User unfollowed successfully.'
         : 'User followed successfully.',
+      followed: isFollowed,
     });
   } catch (error) {
     console.error('Error in followUnfollowUser:', error);
@@ -291,5 +293,27 @@ export const getUserByUsername = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user by username:', error);
     res.status(500).json({message: 'Internal server error'});
+  }
+};
+
+export const checkFollowStatus = async (req, res) => {
+  const userId = req.user._id;
+  const {followId} = req.params;
+
+  try {
+    const user = await User.findById(userId).select('followings'); // Fetch user's following list
+
+    if (!user) {
+      return res.status(404).json({success: false, message: 'User not found'});
+    }
+
+    const isFollowed = user.followings.includes(followId);
+
+    return res.status(200).json({success: true, isFollowed});
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    return res
+      .status(500)
+      .json({success: false, message: 'Internal server error'});
   }
 };

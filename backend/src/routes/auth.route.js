@@ -1,6 +1,7 @@
 import {Router} from 'express';
 import {
   checkAuth,
+  checkFollowStatus,
   followUnfollowUser,
   getUser,
   getUserByUsername,
@@ -22,5 +23,5 @@ router.route('/get-user').get(verifyJWT, getUser);
 router.route('/update-profile').patch(verifyJWT, updateProfile);
 router.route('/follow/:followId').patch(verifyJWT, followUnfollowUser);
 router.route('/profile/:username').get(getUserByUsername);
-
+router.route('/check-follow/:followId').get(verifyJWT, checkFollowStatus);
 export default router;
