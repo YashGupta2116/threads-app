@@ -12,7 +12,7 @@ import {useProfileStore} from '@/store/useProfileStore';
 import {Eye, EyeOff} from 'lucide-react';
 
 const EditProfileModal = ({isOpen, onClose}) => {
-  const {userProfile, editProfile} = useProfileStore();
+  const {authUserProfile, editProfile} = useProfileStore();
 
   // Form Data State
   const [formData, setFormData] = useState({
@@ -32,17 +32,17 @@ const EditProfileModal = ({isOpen, onClose}) => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (userProfile) {
+    if (authUserProfile) {
       setFormData({
-        username: userProfile.username || '',
-        fullName: userProfile.fullName || '',
-        email: userProfile.email || '',
-        bio: userProfile.bio || '',
+        username: authUserProfile.username || '',
+        fullName: authUserProfile.fullName || '',
+        email: authUserProfile.email || '',
+        bio: authUserProfile.bio || '',
         password: '',
         confirmPassword: '',
       });
     }
-  }, [userProfile]);
+  }, [authUserProfile]);
 
   // Handle input change
   const handleChange = (e) => {
