@@ -17,14 +17,14 @@ const HomePage = () => {
 
   const [postContent, setPostContent] = useState('');
 
-  const {userProfile} = useProfileStore();
+  const {authUserProfile} = useProfileStore();
 
   const handlePostSubmit = () => {
     if (postContent.trim()) {
       createPost({
         content: postContent,
-        username: userProfile.username,
-        fullName: userProfile.fullName,
+        username: authUserProfile?.username,
+        fullName: authUserProfile?.fullName,
       });
       setPostContent(''); // Clear the input after posting
     }
@@ -46,7 +46,9 @@ const HomePage = () => {
           <div className='flex gap-3'>
             <Avatar className='h-10 w-10'>
               <AvatarImage src='' alt='Your avatar' />
-              <AvatarFallback>YA</AvatarFallback>
+              <AvatarFallback>
+                {authUserProfile?.fullName[0] || 'G'}
+              </AvatarFallback>
             </Avatar>
             <div className='flex-1'>
               <div className='mb-3'>

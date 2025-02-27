@@ -1,12 +1,11 @@
 import React, {useEffect} from 'react';
-import LoginPage from './pages/LoginPage';
-
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import HomePage from './pages/Home/HomePage';
 import ProfilePage from './pages/ProfilePage';
@@ -32,19 +31,28 @@ const App = () => {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route
           path='/login'
-          element={authUser ? <Navigate to={'/'} /> : <LoginPage />}
+          element={authUser ? <Navigate to='/' /> : <LoginPage />}
         />
         <Route
           path='/signup'
-          element={authUser ? <Navigate to={'/'} /> : <SignUpPage />}
+          element={authUser ? <Navigate to='/' /> : <SignUpPage />}
         />
-        <Route
-          element={authUser ? <MainLayout /> : <Navigate to={'/signup'} />}
-        >
-          <Route path='/' element={<HomePage />} />
-          <Route path='/profile' element={<ProfilePage />} />
+
+        {/* Protected Routes */}
+        {/* Protected Routes */}
+
+        <Route element={authUser ? <MainLayout /> : <SignUpPage />}>
+          <Route path='/' element={authUser ? <HomePage /> : <SignUpPage />} />
+          <Route
+            path='/profile'
+            element={authUser ? <ProfilePage /> : <SignUpPage />}
+          />
+          <Route path='/profile/:username' element={<ProfilePage />} />
+          {/* Add a catch-all route at the end */}
+          <Route path='*' element={<Navigate to='/' />} />
         </Route>
       </Routes>
     </Router>

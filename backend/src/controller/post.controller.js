@@ -16,6 +16,8 @@ export const createPost = async (req, res) => {
     likeCount = [],
     shared = 0,
     comments = [],
+    username,
+    fullName,
   } = req.body;
 
   if (!content) {
@@ -34,11 +36,13 @@ export const createPost = async (req, res) => {
   try {
     const newPost = new Post({
       userId,
+      username,
       content,
       image,
       likeCount,
       shared,
       comments,
+      fullName,
     });
 
     await newPost.save();
@@ -47,6 +51,7 @@ export const createPost = async (req, res) => {
       success: true,
       message: 'Post was created',
       post: newPost,
+      user: req.user,
     });
   } catch (error) {
     console.error('Error creating post:', error);
@@ -86,7 +91,7 @@ export const updatePost = async (req, res) => {
 };
 
 export const deletePost = async (req, res) => {
-  const postId = req.params.postId;
+  const {postId} = req.query;
 
   try {
     const post = await Post.findByIdAndDelete(postId);
@@ -103,29 +108,38 @@ export const deletePost = async (req, res) => {
 };
 
 export const getUserPosts = async (req, res) => {
-  const userId = req.user._id;
-
-  if (!userId) {
-    return res
-      .status(400)
-      .json({success: false, message: 'User not authorized'});
-  }
+  const {username} = req.params;
+  let userId;
 
   try {
-    const allUserPosts = await Post.find({userId}).sort({createdAt: -1});
+    if (username) {
+      // If a username is provided, find the user by username
+      const user = await User.findOne({username});
 
-    if (!allUserPosts) {
-      return res.status(200).json({success: true, message: 'No user posts'});
+      if (!user) {
+        return res
+          .status(404)
+          .json({success: false, message: 'User not found'});
+      }
+      userId = user._id;
+    } else {
+      // If no username is provided, fetch posts for the logged-in user
+      userId = req.user._id;
     }
 
-    res
-      .status(200)
-      .json({success: true, message: 'User posts fetcehd', allUserPosts});
+    // Fetch posts for the determined userId
+    const allUserPosts = await Post.find({userId}).sort({createdAt: -1});
+
+    return res.status(200).json({
+      success: true,
+      message: allUserPosts.length ? 'User posts fetched' : 'No posts found',
+      posts: allUserPosts,
+    });
   } catch (error) {
-    console.log('Internal Server error');
+    console.error('Error in getUserPosts:', error);
     return res
       .status(500)
-      .json({success: false, message: 'error in getUserPosts'});
+      .json({success: false, message: 'Internal Server Error'});
   }
 };
 

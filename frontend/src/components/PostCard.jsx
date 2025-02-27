@@ -7,11 +7,33 @@ import {
   Heart,
   BarChart2,
   MoreHorizontal,
+  Trash2,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {usePostsStore} from '@/store/usePostsStore';
+import {useProfileStore} from '@/store/useProfileStore';
 
 const PostCard = ({post}) => {
-  // Check if post exists and has content
   if (!post) return null;
+
+  const {isDeletingPost, deletePost} = usePostsStore();
+  const {authUserProfile} = useProfileStore();
+
+  const isAuthUserPost = authUserProfile._id === post.userId;
+
+  const handleDeletePost = () => {
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this post?'
+    );
+    if (confirmDelete && deletePost && isAuthUserPost) {
+      deletePost(post._id);
+    }
+  };
 
   return (
     <article className='p-4 border rounded-lg hover:bg-accent/10 transition-colors'>
@@ -19,10 +41,10 @@ const PostCard = ({post}) => {
         {/* Avatar */}
         <Avatar className='h-10 w-10 flex-shrink-0'>
           <AvatarImage
-            src={post.user?.avatar || '/placeholder-avatar.png'}
-            alt={post.user?.fullName || 'User'}
+            src={post?.avatar || '/placeholder-avatar.png'}
+            alt={post?.fullName || 'User'}
           />
-          <AvatarFallback>{post.user?.fullName?.[0] || 'U'}</AvatarFallback>
+          <AvatarFallback>{post?.fullName?.[0] || 'U'}</AvatarFallback>
         </Avatar>
 
         {/* Post Content */}
@@ -31,10 +53,10 @@ const PostCard = ({post}) => {
           <div className='flex items-center justify-between mb-1'>
             <div className='flex items-center gap-1 min-w-0'>
               <span className='font-semibold truncate'>
-                {post.user?.fullName || 'User'}
+                {post?.fullName || 'user'}
               </span>
               <span className='text-muted-foreground truncate'>
-                @{post.user?.username || 'username'}
+                @{post?.username}
               </span>
               <span className='text-muted-foreground'>·</span>
               <span className='text-muted-foreground'>
@@ -43,9 +65,24 @@ const PostCard = ({post}) => {
                   : 'Just now'}
               </span>
             </div>
-            <Button variant='ghost' size='icon' className='h-8 w-8'>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
+
+            {/* More Options Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild hidden={!isAuthUserPost}>
+                <Button variant='ghost' size='icon' className='h-8 w-8'>
+                  <MoreHorizontal className='h-4 w-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end'>
+                <DropdownMenuItem
+                  onClick={handleDeletePost}
+                  className='text-red-500'
+                >
+                  <Trash2 className='h-4 w-4 mr-2' />
+                  Delete Post
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Post Text */}

@@ -27,15 +27,13 @@ import {useProfileStore} from '@/store/useProfileStore';
 const Navbar = () => {
   const {authUser, logout} = authStore();
 
-  const {userProfile, getUserProfile} = useProfileStore();
+  const {authUserProfile, getAuthUserProfile} = useProfileStore();
 
   useEffect(() => {
     if (authUser) {
-      getUserProfile();
+      getAuthUserProfile();
     }
-  }, [authUser]);
-
-  console.log(userProfile);
+  }, [authUser, getAuthUserProfile]); // Ensure the function is included in dependencies
 
   const handleLogout = async () => {
     await logout();
@@ -96,19 +94,23 @@ const Navbar = () => {
             >
               <Avatar className='h-8 w-8'>
                 <AvatarImage src='' alt='User' />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback>
+                  {authUserProfile?.profilePic || authUserProfile.fullName[0]}
+                </AvatarFallback>
               </Avatar>
               <div className='hidden lg:block text-left'>
-                <p className='text-sm font-medium'>{userProfile.fullName}</p>
+                <p className='text-sm font-medium'>
+                  {authUserProfile?.fullName || 'Guest'}
+                </p>
                 <p className='text-xs text-muted-foreground'>
-                  {userProfile.username}
+                  {authUserProfile?.username || '@'}
                 </p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56' align='end' forceMount>
             <DropdownMenuItem asChild>
-              <Link to='/profile' className='flex items-center gap-2'>
+              <Link to='/profile/:username' className='flex items-center gap-2'>
                 <User className='h-4 w-4' />
                 <span>Profile</span>
               </Link>

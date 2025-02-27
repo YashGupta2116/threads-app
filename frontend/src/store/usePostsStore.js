@@ -5,31 +5,52 @@ export const usePostsStore = create((set) => ({
   userPosts: null,
   gettingUserPosts: false,
 
-  getUserPosts: async () => {
+  getUserPosts: async (username = '') => {
     set({gettingUserPosts: true});
     try {
-      const response = await axiosInstance.get('/posts/');
-
-      set({userPosts: response.data.allUserPosts});
+      const endpoint = username
+        ? `/posts/get-posts/${username}`
+        : '/posts/get-posts';
+      const response = await axiosInstance.get(endpoint);
+      console.log('posts : ', response);
+      set({userPosts: response.data.posts}); // Use `posts` instead of `allUserPosts`
     } catch (error) {
-      console.log('Error while getting user posts');
+      console.error('Error while getting user posts:', error.message);
     } finally {
       set({gettingUserPosts: false});
     }
   },
 
   isCreatingPost: false,
-  createdPost: null,
   createPost: async (data) => {
     set({isCreatingPost: true});
     try {
       const response = await axiosInstance.post('/posts/', data);
-
-      set({createdPost: response.post});
+      set((state) => ({
+        userPosts: [response.data.post, ...state.userPosts], // Add new post
+      }));
     } catch (error) {
-      console.log('error in creating the post ', error);
+      console.error('Error in creating post:', error.message);
     } finally {
       set({isCreatingPost: false});
+    }
+  },
+
+  isDeletingPost: false,
+  deletePost: async (postId) => {
+    set({isDeletingPost: true});
+    try {
+      const response = await axiosInstance.delete(
+        `/posts/deletePost?postId=${postId}`
+      );
+
+      set((state) => ({
+        userPosts: state.userPosts.filter((post) => post._id !== postId),
+      }));
+    } catch (error) {
+      console.error('Error in deleting post:', error.message);
+    } finally {
+      set({isDeletingPost: false});
     }
   },
 }));
