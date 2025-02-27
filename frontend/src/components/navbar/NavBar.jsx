@@ -110,7 +110,7 @@ const Navbar = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56' align='end' forceMount>
             <DropdownMenuItem asChild>
-              <Link to='/profile/:username' className='flex items-center gap-2'>
+              <Link to='/profile/' className='flex items-center gap-2'>
                 <User className='h-4 w-4' />
                 <span>Profile</span>
               </Link>
